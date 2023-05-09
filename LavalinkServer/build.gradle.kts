@@ -1,4 +1,3 @@
-import org.ajoberstar.grgit.Grgit
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
@@ -16,7 +15,6 @@ apply(plugin = "kotlin")
 apply(plugin = "kotlin-spring")
 
 description = "Play audio to discord voice channels"
-version = versionFromTag()
 
 application {
     mainClass.set("lavalink.server.Launcher")
@@ -34,7 +32,10 @@ configurations {
 }
 
 dependencies {
-    implementation(projects.pluginApi)
+    implementation(projects.protocol)
+    implementation(projects.pluginApi) {
+        exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
+    }
 
     implementation(libs.bundles.metrics)
     implementation(libs.bundles.spring) {
@@ -59,7 +60,6 @@ dependencies {
     implementation(libs.sentry.logback)
     implementation(libs.oshi)
     implementation(libs.json)
-    implementation(libs.gson)
 
     compileOnly(libs.spotbugs)
 
@@ -82,6 +82,10 @@ tasks {
         )
 
         filter(ReplaceTokens::class, mapOf("tokens" to tokens))
+        copy {
+            from("application.yml.example")
+            into("$buildDir/resources/main")
+        }
     }
 
     // https://stackoverflow.com/questions/41444916/multiple-artifacts-issue-with-deploying-zip-to-nexus
@@ -117,16 +121,37 @@ tasks {
     }
 }
 
-@SuppressWarnings("GrMethodMayBeStatic")
-fun versionFromTag(): String = Grgit.open(mapOf("currentDir" to project.rootDir)).use { git ->
-    val headTag = git.tag
-        .list()
-        .find { it.commit.id == git.head().id }
+publishing {
+    publications {
+        create<MavenPublication>("LavalinkServer") {
+            from(project.components["java"])
 
-    val clean = git.status().isClean || System.getenv("CI") != null
-    if (!clean) {
-        println("Git state is dirty, setting version as snapshot.")
+            pom {
+                name.set("Lavalink Server")
+                description.set("Lavalink Server")
+                url.set("https://github.com/freyacodes/lavalink")
+
+                licenses {
+                    license {
+                        name.set("The MIT License")
+                        url.set("https://github.com/freyacodes/Lavalink/blob/master/LICENSE")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("freyacodes")
+                        name.set("Freya Arbjerg")
+                        url.set("https://www.arbjerg.dev")
+                    }
+                }
+
+                scm {
+                    connection.set("scm:git:ssh://github.com/freyacodes/lavalink.git")
+                    developerConnection.set("scm:git:ssh://github.com/freyacodes/lavalink.git")
+                    url.set("https://github.com/freyacodes/lavalink")
+                }
+            }
+        }
     }
-
-    return if (headTag != null && clean) headTag.name else "${git.head().id}-SNAPSHOT"
 }

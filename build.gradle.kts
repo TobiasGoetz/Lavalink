@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.ajoberstar.grgit.Grgit
 
 buildscript {
     repositories {
@@ -14,13 +15,14 @@ buildscript {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:2.6.6")
         classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2")
         classpath("com.adarshr:gradle-test-logger-plugin:1.6.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
-        classpath("org.jetbrains.kotlin:kotlin-allopen:1.3.61")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.20")
+        classpath("org.jetbrains.kotlin:kotlin-allopen:1.7.20")
     }
 }
 
 allprojects {
     group = "lavalink"
+    version = versionFromTag()
 
     repositories {
         mavenCentral() // main maven repo
@@ -41,7 +43,7 @@ subprojects {
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "11"
     }
 
     tasks.withType<JavaCompile> {
@@ -49,4 +51,18 @@ subprojects {
         options.compilerArgs.add("-Xlint:unchecked")
         options.compilerArgs.add("-Xlint:deprecation")
     }
+}
+
+@SuppressWarnings("GrMethodMayBeStatic")
+fun versionFromTag(): String = Grgit.open(mapOf("currentDir" to project.rootDir)).use { git ->
+    val headTag = git.tag
+        .list()
+        .find { it.commit.id == git.head().id }
+
+    val clean = git.status().isClean || System.getenv("CI") != null
+    if (!clean) {
+        println("Git state is dirty, setting version as snapshot.")
+    }
+
+    return if (headTag != null && clean) headTag.name else "${git.head().id}-SNAPSHOT"
 }

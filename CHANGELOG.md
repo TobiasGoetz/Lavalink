@@ -3,6 +3,37 @@
 Each release usually includes various fixes and improvements.
 The most noteworthy of these, as well as any features and breaking changes, are listed here.
 
+## 4.0.0-beta.3
+* Update lavaplayer to [`2.0.0`](https://github.com/lavalink-devs/lavaplayer/releases/tag/2.0.0) - Fixed YouTube 403 errors & YouTube access token errors
+
+## 4.0.0-beta.2
+* Update lavaplayer to [`08cfbc0`](https://github.com/Walkyst/lavaplayer-fork/commit/08cfbc05953128f3cf727ea3bcbe41dabcd1c7db) -  Fixed ogg streaming
+* Add JDA-NAS support for musl (`x86-64`, `aarch64`) based systems (most notably `alpine`)
+* New config option to specify the directory to load plugins from. `lavalink.pluginsDir` (defaults to `./plugins`)
+
+## 4.0.0-beta.1
+* New Lavalink now requires Java 17 or higher to run
+* **Removal of all websocket messages sent by the client. Everything is now done via [REST](IMPLEMENTATION.md#rest-api)**
+* Update to [Lavaplayer custom branch](https://github.com/Walkyst/lavaplayer-fork/tree/custom), which includes native support for artwork urls and ISRCs in the track info
+* Addition of full `Track` objects in following events: `TrackStartEvent`, `TrackEndEvent`, `TrackExceptionEvent`, `TrackStuckEvent`
+* Resuming a session now requires the `Session-Id` header instead of `Resume-Key` header
+* Reworked track loading result. For more info see [here](IMPLEMENTATION.md#track-loading-result)
+* Update to the [Protocol Module](protocol) to support Kotlin/JS
+* Removal of all `/v3` endpoints except `/version`. All other endpoints are now under `/v4`
+
+> **Warning**
+> This is a beta release, and as such, may contain bugs. Please report any bugs you find to the [issue tracker](https://github.com/lavalink-devs/Lavalink/issues/new/choose).
+> For more info on the changes in this release, see [here](IMPLEMENTATION.md#significant-changes-v370---v400)
+> If you have any question regarding the changes in this release, please ask in the [support server](https://discord.gg/ZW4s47Ppw4) or [GitHub discussions](https://github.com/lavalink-devs/Lavalink/discussions/categories/q-a)
+
+Contributors:
+[@topi314](https://github.com/topi314), [@freyacodes](https://github.com/freyacodes), [@DRSchlaubi](https://github.com/DRSchlaubi) and [@melike2d](https://github.com/melike2d)
+
+## 3.7.6
+* Update Lavaplayer to [`1.4.1`](https://github.com/Walkyst/lavaplayer-fork/releases/tag/1.4.1) & [`1.4.2`](https://github.com/Walkyst/lavaplayer-fork/releases/tag/1.4.2)
+* New support for `MUSL` based systems (most notably `alpine`)
+* New `alpine` docker image variant (use `-alpine` suffix)
+
 ## 3.7.5
 * Fix `endTime` in `Player Update` endpoint only applying when playing a new track
 * Fix errors when doing multiple session resumes
@@ -32,7 +63,7 @@ The most noteworthy of these, as well as any features and breaking changes, are 
 * Update udpqueue.rs to `v0.2.6`. https://github.com/lavalink-devs/Lavalink/pull/802
 
 Contributors:
-[@TopiSenpai](https://github.com/TopiSenpai), [@Devoxin](https://github.com/Devoxin), [@melike2d](https://github.com/melike2d), [@freyacodes](https://github.com/freyacodes), [@aikaterna](https://github.com/aikaterna), [@ooliver1](https://github.com/ooliver1)
+[@topi314](https://github.com/topi314), [@Devoxin](https://github.com/Devoxin), [@melike2d](https://github.com/melike2d), [@freyacodes](https://github.com/freyacodes), [@aikaterna](https://github.com/aikaterna), [@ooliver1](https://github.com/ooliver1)
 
 ## 3.6.2
 * Update lavaplayer to `1.3.99.1`. For more info see [here](https://github.com/lavalink-devs/Lavalink/pull/773)
@@ -52,9 +83,7 @@ Contributors:
 * New `ping` field in player update. see https://github.com/lavalink-devs/Lavalink/pull/738 for more info
 
 Contributors: 
-[@TopiSenpai](https://github.com/TopiSenpai),
-[@Devoxin](https://github.com/Devoxin), and 
-[@freyacodes](https://github.com/freyacodes) 
+[@topi314](https://github.com/topi314), [@Devoxin](https://github.com/Devoxin), and [@freyacodes](https://github.com/freyacodes)
 
 ## 3.5
 * New plugin system. For more info see [here](https://github.com/lavalink-devs/Lavalink/blob/master/PLUGINS.md).
@@ -75,7 +104,7 @@ Contributors:
 [@freyacodes](https://github.com/freyacodes), 
 [@davidffa](https://github.com/davidffa), 
 [@Walkyst](https://github.com/Walkyst), 
-[@TopiSenpai](https://github.com/TopiSenpai), 
+[@topi314](https://github.com/topi314), 
 [@duncte123](https://github.com/duncte123), 
 [@Kodehawa](https://github.com/Kodehawa), 
 [@Devoxin](https://github.com/Devoxin), 
@@ -102,7 +131,7 @@ Contributors:
 [@DaliborTrampota](https://github.com/DaliborTrampota),
 [@Mandruyd](https://github.com/Mandruyd),
 [@Allvaa](https://github.com/@Allvaa), and
-[@TopiSenpai](https://github.com/TopiSenpai)
+[@topi314](https://github.com/topi314)
 
 ## 3.3.2.5
 * Update Lavaplayer to 1.3.76

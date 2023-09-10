@@ -1,83 +1,93 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinMultiplatform
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
+
 plugins {
-    java
-    signing
-    `java-library`
-    `maven-publish`
-    kotlin("jvm")
+    kotlin("multiplatform")
+    kotlin("plugin.serialization")
+    id("org.jetbrains.dokka")
+    alias(libs.plugins.maven.publish.base)
 }
 
 val archivesBaseName = "protocol"
 group = "dev.arbjerg.lavalink"
 
-java {
-    targetCompatibility = JavaVersion.VERSION_11
-    sourceCompatibility = JavaVersion.VERSION_11
+kotlin {
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
+    }
 
-    withJavadocJar()
-    withSourcesJar()
-}
-
-dependencies {
-    compileOnly(libs.lavaplayer)
-    implementation(libs.kotlin.stdlib.jdk8)
-    implementation(libs.jackson.module.kotlin)
-}
-
-val isGpgKeyDefined = findProperty("signing.gnupg.keyName") != null
-
-publishing {
-    publications {
-        create<MavenPublication>("Protocol") {
-            from(project.components["java"])
-
-            pom {
-                name.set("Lavalink Protocol")
-                description.set("Protocol for Lavalink Client development")
-                url.set("https://github.com/lavalink-devs/lavalink")
-
-                licenses {
-                    license {
-                        name.set("The MIT License")
-                        url.set("https://github.com/lavalink-devs/Lavalink/blob/master/LICENSE")
-                    }
-                }
-
-                developers {
-                    developer {
-                        id.set("freyacodes")
-                        name.set("Freya Arbjerg")
-                        url.set("https://www.arbjerg.dev")
-                    }
-                }
-
-                scm {
-                    connection.set("scm:git:ssh://github.com/lavalink-devs/lavalink.git")
-                    developerConnection.set("scm:git:ssh://github.com/lavalink-devs/lavalink.git")
-                    url.set("https://github.com/lavalink-devs/lavalink")
+    js(IR) {
+        nodejs()
+        browser()
+        compilations.all {
+            packageJson {
+                //language=RegExp
+                // npm doesn't support our versioning :(
+                val validVersion = """\d+\.\d+\.\d+""".toRegex()
+                if (!validVersion.matches(project.version.toString())) {
+                    version = "4.0.0"
                 }
             }
         }
     }
-    if (isGpgKeyDefined) {
-        repositories {
-            val snapshots = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-            val releases = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
 
-            maven(if ((version as String).endsWith("SNAPSHOT")) snapshots else releases) {
-                credentials {
-                    password = findProperty("ossrhPassword") as? String
-                    username = findProperty("ossrhUsername") as? String
-                }
+    sourceSets {
+        all {
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+        }
+
+        commonMain {
+            dependencies {
+                api(libs.kotlinx.serialization.json)
+                api(libs.kotlinx.datetime)
             }
         }
-    } else {
-        println("Not capable of publishing to OSSRH because of missing GPG key")
+
+        commonTest {
+            dependencies {
+                api(kotlin("test-common"))
+                api(kotlin("test-annotations-common"))
+            }
+        }
+
+        named("jsTest") {
+            dependencies {
+                implementation(kotlin("test-js"))
+            }
+        }
+
+        named("jvmTest") {
+            dependencies {
+                implementation(kotlin("test-junit5"))
+            }
+        }
     }
 }
 
-if (isGpgKeyDefined) {
-    signing {
-        sign(publishing.publications["Protocol"])
-        useGpgCmd()
+mavenPublishing {
+    configure(KotlinMultiplatform(JavadocJar.Dokka("dokkaHtml")))
+    pom {
+        name = "Lavalink Protocol"
+        description = "Protocol for Lavalink Client development"
+    }
+}
+
+tasks {
+    withType<KotlinJvmTest> {
+        useJUnitPlatform()
+    }
+}
+
+// Use system Node.Js on NixOS
+if (System.getenv("NIX_PROFILES") != null) {
+    rootProject.plugins.withType<NodeJsRootPlugin> {
+        rootProject.the<NodeJsRootExtension>().download = false
     }
 }
